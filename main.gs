@@ -281,3 +281,179 @@ function onError(error) {
     TriggerManager.stopOnCriticalError();
   }
 }
+
+/**
+ * 초기 설정 함수 (최초 1회 실행 필요)
+ * Google Apps Script 프로젝트를 처음 설정할 때 실행하세요
+ */
+function setupInitialConfiguration() {
+  try {
+    Logger.info('Starting initial system configuration');
+    
+    const ui = SpreadsheetApp.getUi();
+    const response = ui.alert(
+      'システム初期設定',
+      'システムの初期設定を開始します。\n' +
+      'この処理は最初の1回のみ実行してください。\n\n' +
+      '続行しますか？',
+      ui.ButtonSet.YES_NO
+    );
+    
+    if (response !== ui.Button.YES) {
+      ui.alert('初期設定がキャンセルされました。');
+      return;
+    }
+    
+    // 1. 기본 설정 초기화
+    ConfigManager.initializeConfig();
+    
+    // 2. 로깅 시스템 초기화
+    Logger.startNewSession();
+    Logger.info('Initial configuration started');
+    
+    // 3. 설정 검증
+    const validation = ConfigManager.validate();
+    
+    // 4. 결과 표시
+    let message = '初期設定が完了しました。\n\n';
+    message += '■ 設定結果:\n';
+    message += `設定状態: ${validation.isValid ? '正常' : '要確認'}\n`;
+    
+    if (validation.missingApiKey) {
+      message += '\n■ 追加設定が必要:\n';
+      message += '• Gemini APIキーの設定\n';
+      message += '  プロジェクト設定 → スクリプト属性で設定してください\n';
+      message += '  属性名: GEMINI_API_KEY\n';
+    }
+    
+    if (validation.missingEmailConfig) {
+      message += '• メール送信先の設定\n';
+      message += '  属性名: EMAIL_RECIPIENTS\n';
+    }
+    
+    message += '\n次のステップ:\n';
+    message += '1. 必要な場合、APIキーを設定\n';
+    message += '2. 「設定検証」メニューで確認\n';
+    message += '3. 「PDF統合送信」でテスト実行\n';
+    
+    ui.alert('初期設定完了', message, ui.ButtonSet.OK);
+    
+    Logger.info('Initial configuration completed successfully', {
+      validation: validation
+    });
+    
+  } catch (error) {
+    Logger.error('Initial configuration failed', {
+      error: error.message
+    });
+    
+    SpreadsheetApp.getUi().alert(
+      '初期設定エラー',
+      `初期設定中にエラーが発生しました:\n${error.message}\n\n` +
+      'ログを確認して、必要に応じて手動で設定してください。',
+      SpreadsheetApp.getUi().ButtonSet.OK
+    );
+    
+    throw error;
+  }
+}
+
+/**
+ * API 키 설정 도우미 함수
+ * Gemini API 키를 쉽게 설정할 수 있는 함수
+ */
+function setGeminiApiKey() {
+  try {
+    const ui = SpreadsheetApp.getUi();
+    const response = ui.prompt(
+      'Gemini APIキー設定',
+      'Gemini APIキーを入力してください:\n' +
+      '(Google AI Studioで取得できます)',
+      ui.ButtonSet.OK_CANCEL
+    );
+    
+    if (response.getSelectedButton() === ui.Button.OK) {
+      const apiKey = response.getResponseText().trim();
+      
+      if (apiKey.length > 0) {
+        PropertiesService.getScriptProperties().setProperty('GEMINI_API_KEY', apiKey);
+        
+        ui.alert(
+          'APIキー設定完了',
+          'Gemini APIキーが正常に設定されました。',
+          ui.ButtonSet.OK
+        );
+        
+        Logger.info('Gemini API key configured successfully');
+        
+        // 설정 검증 실행
+        validateConfiguration();
+        
+      } else {
+        ui.alert('APIキーが入力されませんでした。');
+      }
+    }
+    
+  } catch (error) {
+    Logger.error('API key setup failed', {
+      error: error.message
+    });
+    
+    SpreadsheetApp.getUi().alert(
+      'APIキー設定エラー',
+      `APIキーの設定に失敗しました: ${error.message}`,
+      SpreadsheetApp.getUi().ButtonSet.OK
+    );
+  }
+}
+
+/**
+ * 이메일 수신자 설정 도우미 함수
+ */
+function setEmailRecipients() {
+  try {
+    const ui = SpreadsheetApp.getUi();
+    const response = ui.prompt(
+      'メール送信先設定',
+      'メール送信先を入力してください:\n' +
+      '(複数の場合はカンマで区切り)\n' +
+      '例: user1@example.com, user2@example.com',
+      ui.ButtonSet.OK_CANCEL
+    );
+    
+    if (response.getSelectedButton() === ui.Button.OK) {
+      const recipients = response.getResponseText().trim();
+      
+      if (recipients.length > 0) {
+        PropertiesService.getScriptProperties().setProperty('EMAIL_RECIPIENTS', recipients);
+        
+        ui.alert(
+          'メール送信先設定完了',
+          `送信先が設定されました:\n${recipients}`,
+          ui.ButtonSet.OK
+        );
+        
+        Logger.info('Email recipients configured successfully', {
+          recipients: recipients
+        });
+        
+        // 설정 검증 실행
+        validateConfiguration();
+        
+      } else {
+        ui.alert('メール送信先が入力されませんでした。');
+      }
+    }
+    
+  } catch (error) {
+    Logger.error('Email recipients setup failed', {
+      error: error.message
+    });
+    
+    SpreadsheetApp.getUi().alert(
+      'メール送信先設定エラー',
+      `メール送信先の設定に失敗しました: ${error.message}`,
+      SpreadsheetApp.getUi().ButtonSet.OK
+    );
+  }
+}
