@@ -21,6 +21,18 @@ class GeminiAPI {
   static summarizeText(text, options = {}) {
     const startTime = new Date();
     
+    // Recursion depth tracking to prevent infinite recursion
+    const maxRecursionDepth = 3;
+    const currentDepth = options._recursionDepth || 0;
+    
+    if (currentDepth >= maxRecursionDepth) {
+      Logger.error('Maximum recursion depth reached', { 
+        depth: currentDepth,
+        maxDepth: maxRecursionDepth 
+      });
+      throw new Error('Maximum recursion depth exceeded in summarizeText');
+    }
+    
     try {
       // 설정 로드
       const config = ConfigManager.getApiConfig();
@@ -157,7 +169,7 @@ class GeminiAPI {
    */
   static _executeApiRequest(text, options = {}) {
     const config = ConfigManager.getApiConfig();
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${config.apiKey}`;
+    const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
     
     // 프롬프트 구성
     const prompt = this._buildPrompt(text, options);
@@ -191,6 +203,7 @@ class GeminiAPI {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'x-goog-api-key': config.apiKey
       },
       payload: JSON.stringify(payload),
       muteHttpExceptions: true
@@ -232,6 +245,14 @@ class GeminiAPI {
     const maxLength = options.maxLength || 300;
     const style = options.style || 'business';
     
+    // Input validation to prevent prompt injection
+    if (typeof text !== 'string') {
+      throw new Error('Input text must be a string');
+    }
+    
+    // Sanitize input text to prevent prompt injection
+    const sanitizedText = this._sanitizeInput(text);
+    
     let prompt = '';
     
     if (language === 'ja') {
@@ -246,9 +267,34 @@ class GeminiAPI {
       }
     }
     
-    prompt += `\n\nテキスト:\n${text}`;
+    prompt += `\n\nテキスト:\n${sanitizedText}`;
     
     return prompt;
+  }
+  
+  /**
+   * 입력 텍스트 무해화 처리
+   * @private
+   */
+  static _sanitizeInput(text) {
+    if (!text || typeof text !== 'string') {
+      return '';
+    }
+    
+    // Remove potential prompt injection patterns
+    let sanitized = text
+      .replace(/```[\s\S]*?```/g, '[코드 블록 제거됨]')  // Remove code blocks
+      .replace(/\b(ignore|forget|system|assistant|user)[\s:]+/gi, '[명령어 제거됨]')  // Remove command-like patterns
+      .replace(/[<>]/g, '')  // Remove angle brackets
+      .replace(/\n{3,}/g, '\n\n')  // Limit consecutive newlines
+      .trim();
+    
+    // Limit text length to prevent extremely long inputs
+    if (sanitized.length > 50000) {
+      sanitized = sanitized.substring(0, 50000) + '\n[텍스트 길이 제한으로 인해 잘림]';
+    }
+    
+    return sanitized;
   }
   
   /**
@@ -351,7 +397,8 @@ class GeminiAPI {
         const shortenedText = text.substring(0, Math.floor(text.length * 0.5));
         return this.summarizeText(shortenedText, {
           ...options,
-          isRecoveryAttempt: true
+          isRecoveryAttempt: true,
+          _recursionDepth: (options._recursionDepth || 0) + 1
         });
         
       case 'simplify_request':
@@ -360,7 +407,8 @@ class GeminiAPI {
           ...options,
           temperature: 0.1,
           maxLength: 100,
-          isRecoveryAttempt: true
+          isRecoveryAttempt: true,
+          _recursionDepth: (options._recursionDepth || 0) + 1
         });
         
       case 'fallback_summary':
@@ -450,31 +498,81 @@ class GeminiAPI {
   }
   
   /**
-   * 사용량 기록 업데이트
+   * 사용량 기록 업데이트 (Race condition 방지)
    * @param {Object} callData - 호출 데이터
    */
   static updateUsageStats(callData) {
     const today = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd');
     const usageKey = `api_usage_${today}`;
+    const lockKey = `${usageKey}_lock`;
     
     const properties = PropertiesService.getScriptProperties();
-    const usage = JSON.parse(properties.getProperty(usageKey) || '{}');
     
-    usage.totalCalls = (usage.totalCalls || 0) + 1;
-    usage.totalTokens = (usage.totalTokens || 0) + (callData.tokens || 0);
-    usage.totalCost = (usage.totalCost || 0) + (callData.cost || 0);
+    // Simple locking mechanism to prevent race conditions
+    const maxRetries = 5;
+    const retryDelay = 100; // milliseconds
     
-    if (callData.responseTime) {
-      const currentAvg = usage.averageResponseTime || 0;
-      const totalCalls = usage.totalCalls;
-      usage.averageResponseTime = ((currentAvg * (totalCalls - 1)) + callData.responseTime) / totalCalls;
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        // Try to acquire lock
+        const lockValue = Date.now().toString();
+        const existingLock = properties.getProperty(lockKey);
+        
+        // Check if lock is expired (older than 5 seconds)
+        if (existingLock && (Date.now() - parseInt(existingLock)) < 5000) {
+          if (attempt < maxRetries - 1) {
+            Utilities.sleep(retryDelay);
+            continue;
+          } else {
+            Logger.warn('Failed to acquire usage stats lock, proceeding anyway');
+          }
+        }
+        
+        // Set lock
+        properties.setProperty(lockKey, lockValue);
+        
+        // Perform atomic operation
+        const usage = JSON.parse(properties.getProperty(usageKey) || '{}');
+        
+        usage.totalCalls = (usage.totalCalls || 0) + 1;
+        usage.totalTokens = (usage.totalTokens || 0) + (callData.tokens || 0);
+        usage.totalCost = (usage.totalCost || 0) + (callData.cost || 0);
+        
+        if (callData.responseTime) {
+          const currentAvg = usage.averageResponseTime || 0;
+          const totalCalls = usage.totalCalls;
+          usage.averageResponseTime = ((currentAvg * (totalCalls - 1)) + callData.responseTime) / totalCalls;
+        }
+        
+        if (callData.isError) {
+          usage.errorCount = (usage.errorCount || 0) + 1;
+          usage.errorRate = usage.errorCount / usage.totalCalls;
+        }
+        
+        properties.setProperty(usageKey, JSON.stringify(usage));
+        
+        // Release lock
+        properties.deleteProperty(lockKey);
+        return;
+        
+      } catch (error) {
+        // Release lock on error
+        try {
+          properties.deleteProperty(lockKey);
+        } catch (e) {
+          // Ignore cleanup errors
+        }
+        
+        if (attempt === maxRetries - 1) {
+          Logger.error('Failed to update usage stats after retries', {
+            error: error.message,
+            attempt: attempt
+          });
+          throw error;
+        }
+        
+        Utilities.sleep(retryDelay);
+      }
     }
-    
-    if (callData.isError) {
-      usage.errorCount = (usage.errorCount || 0) + 1;
-      usage.errorRate = usage.errorCount / usage.totalCalls;
-    }
-    
-    properties.setProperty(usageKey, JSON.stringify(usage));
   }
 }
