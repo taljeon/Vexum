@@ -1,6 +1,6 @@
 /**
- * main.gs - 메인 진입점 및 UI 관리
- * 메뉴 생성, 사용자 인터페이스, 메인 실행 함수
+ * main.gs - Main entry point and UI management
+ * Menu creation, user interface, main execution functions
  * 
  * @version 2.0
  * @author Google Apps Script System
@@ -8,7 +8,7 @@
  */
 
 /**
- * onOpen: 커스텀 메뉴 생성
+ * onOpen: Create custom menu
  */
 function onOpen() {
   try {
@@ -36,12 +36,12 @@ function onOpen() {
     Logger.info('Menu initialized successfully');
     
   } catch (error) {
-    console.error('Menu initialization failed:', error.message);
+    Logger.error('Menu initialization failed', { error: error.message });
   }
 }
 
 /**
- * 설정 변경 다이얼로그 (개선된 버전)
+ * Configuration dialog
  */
 function showConfigDialog() {
   try {
@@ -102,7 +102,7 @@ function showConfigDialog() {
 }
 
 /**
- * 메인 실행 함수들 (각 모드별 진입점)
+ * Main execution functions (entry points for each mode)
  */
 function sendAllPdfsConsolidated() {
   Logger.startNewSession();
@@ -123,7 +123,7 @@ function sendErrorsOnly() {
 }
 
 /**
- * 자동 실행용 진입점 (트리거에서 호출)
+ * Auto execution entry point (called by triggers)
  */
 function sendAllPdfs() {
   Logger.startNewSession();
@@ -133,7 +133,7 @@ function sendAllPdfs() {
 }
 
 /**
- * 자동 실행 관리
+ * Auto execution management
  */
 function startAutoExecution() {
   TriggerManager.start();
@@ -148,7 +148,7 @@ function showTriggerStatus() {
 }
 
 /**
- * 설정 및 로그 관리
+ * Configuration and log management
  */
 function validateConfiguration() {
   ConfigManager.validate();
@@ -187,7 +187,7 @@ function showSystemHealth() {
 }
 
 /**
- * 고급 기능들
+ * Advanced features
  */
 function exportDetailedAnalysis() {
   PerformanceAnalyzer.exportDetailedAnalysis();
@@ -224,7 +224,7 @@ function runPerformanceBenchmark() {
 }
 
 /**
- * 개발자용 헬퍼 함수들
+ * Developer helper functions
  */
 function resetAllSettings() {
   try {
@@ -236,10 +236,7 @@ function resetAllSettings() {
     );
     
     if (response === ui.Button.YES) {
-      // 트리거 정리
       TriggerManager.cleanup();
-      
-      // 프로퍼티 정리 (API 키 등 중요 설정 제외)
       const properties = PropertiesService.getScriptProperties();
       const keysToReset = ['EMAIL_MODE', 'CURRENT_SESSION_ID', 'ACTIVE_TRIGGER_INFO', 'LAST_EXECUTION_INFO'];
       keysToReset.forEach(key => properties.deleteProperty(key));
@@ -256,7 +253,7 @@ function resetAllSettings() {
 
 function debugAllTriggers() {
   const triggerInfo = TriggerManager.debugTriggers();
-  console.log('All triggers:', triggerInfo);
+  Logger.info('Debug triggers requested', { triggerCount: triggerInfo.length, triggers: triggerInfo });
   
   const ui = SpreadsheetApp.getUi();
   const message = triggerInfo.length > 0 
@@ -267,7 +264,7 @@ function debugAllTriggers() {
 }
 
 /**
- * 글로벌 에러 핸들러
+ * Global error handler
  */
 function onError(error) {
   Logger.critical('Global error handler triggered', {
@@ -276,7 +273,7 @@ function onError(error) {
     timestamp: new Date().toISOString()
   });
   
-  // 치명적 에러 시 자동 실행 중지
+  // Stop auto execution on critical errors
   if (error.message.includes('CRITICAL') || error.message.includes('FATAL')) {
     TriggerManager.stopOnCriticalError();
   }
@@ -304,17 +301,11 @@ function setupInitialConfiguration() {
       return;
     }
     
-    // 1. 기본 설정 초기화
     ConfigManager.initializeConfig();
-    
-    // 2. 로깅 시스템 초기화
     Logger.startNewSession();
     Logger.info('Initial configuration started');
     
-    // 3. 설정 검증
     const validation = ConfigManager.validate();
-    
-    // 4. 결과 표시
     let message = '初期設定が完了しました。\n\n';
     message += '■ 設定結果:\n';
     message += `設定状態: ${validation.isValid ? '正常' : '要確認'}\n`;
@@ -364,37 +355,13 @@ function setupInitialConfiguration() {
  */
 function setupInitialConfigurationHeadless() {
   try {
-    console.log('Starting initial system configuration (headless mode)');
+    Logger.info('Starting initial system configuration (headless mode)');
     
-    // 1. 기본 설정 초기화
     ConfigManager.initializeConfig();
-    
-    // 2. 로깅 시스템 초기화
     Logger.startNewSession();
     Logger.info('Initial configuration started (headless)');
     
-    // 3. 설정 검증
     const validation = ConfigManager.validate();
-    
-    // 4. 결과를 콘솔에 출력
-    console.log('=== 初期設定完了 ===');
-    console.log(`設定状態: ${validation.isValid ? '正常' : '要確認'}`);
-    
-    if (validation.missingApiKey) {
-      console.log('⚠️ Gemini APIキーの設定が必要です');
-      console.log('プロジェクト設定 → スクリプト属性で設定してください');
-      console.log('属性名: GEMINI_API_KEY');
-    }
-    
-    if (validation.missingEmailConfig) {
-      console.log('⚠️ メール送信先の設定が必要です');
-      console.log('属性名: EMAIL_RECIPIENTS');
-    }
-    
-    console.log('\n次のステップ:');
-    console.log('1. 必要な場合、APIキーを設定');
-    console.log('2. スプレッドシートから「設定検証」メニューで確認');
-    console.log('3. 「PDF統合送信」でテスト実行');
     
     Logger.info('Initial configuration completed successfully (headless)', {
       validation: validation
@@ -407,8 +374,6 @@ function setupInitialConfigurationHeadless() {
     };
     
   } catch (error) {
-    console.error('初期設定エラー:', error.message);
-    
     Logger.error('Initial configuration failed (headless)', {
       error: error.message
     });
@@ -449,7 +414,6 @@ function setGeminiApiKey() {
         
         Logger.info('Gemini API key configured successfully');
         
-        // 설정 검증 실행
         validateConfiguration();
         
       } else {
@@ -500,7 +464,6 @@ function setEmailRecipients() {
           recipients: recipients
         });
         
-        // 설정 검증 실행
         validateConfiguration();
         
       } else {

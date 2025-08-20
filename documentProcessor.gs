@@ -1,6 +1,6 @@
 /**
- * documentProcessor.gs - 핵심 문서 처리 로직
- * 문서 처리, 배치 실행, 텍스트 최적화
+ * documentProcessor.gs - Core document processing logic
+ * Document processing, batch execution, text optimization
  * 
  * @version 2.0
  * @author Google Apps Script System
@@ -8,7 +8,7 @@
  */
 
 /**
- * 문서 처리 메인 클래스 (개선된 버전)
+ * Main document processing class
  */
 class DocumentProcessor {
   /**
@@ -23,7 +23,6 @@ class DocumentProcessor {
     const processedData = [];
     
     try {
-      // 설정 검증 및 동적 설정 로드
       ConfigManager.validateRequiredProperties();
       const executionSettings = ConfigManager.getExecutionSettings();
       
@@ -36,7 +35,6 @@ class DocumentProcessor {
         throw new Error('処理対象のシートがありません。');
       }
       
-      // 동적 설정 계산
       const dynamicLimits = ConfigHelper.calculateDynamicLimits(sheets.length);
       if (dynamicLimits.willExceedTimeLimit) {
         Logger.warning('Execution may exceed time limit', {
@@ -49,7 +47,6 @@ class DocumentProcessor {
       
       const settings = ConfigManager.getAllSettings();
       
-      // 이메일 모드 결정
       const currentEmailMode = emailMode || ConfigManager.getEmailMode();
       
       Logger.info('PDF送信処理開始', { 
@@ -62,7 +59,6 @@ class DocumentProcessor {
       
       performanceMonitor.checkpoint('Initialization completed');
       
-      // 시트 처리 (PDF 생성 및 요약 생성)
       const results = this.processSheetsInBatches(
         sheets, 
         settings.GEMINI_API_KEY, 
@@ -78,17 +74,14 @@ class DocumentProcessor {
       
       performanceMonitor.checkpoint('Sheet processing completed');
       
-      // 메일 전송 (모드에 따라 분기)
       if (successCount > 0 || currentEmailMode !== CONFIG.EMAIL_MODE.ERRORS_ONLY) {
         EmailSender.sendByMode(currentEmailMode, processedData, settings.MAIL_TO, settings.MAIL_SUBJECT, errors);
         performanceMonitor.checkpoint('Email sending completed');
       }
       
-      // 성능 분석
       const performanceResults = performanceMonitor.finish(sheets.length, successCount, failCount);
       const apiUsage = PerformanceAnalyzer.analyzeApiUsage(processedData);
       
-      // 결과 보고
       const executionTime = new Date().getTime() - startTime;
       Logger.info('PDF送信処理完了', {
         successCount,
@@ -114,7 +107,7 @@ class DocumentProcessor {
       const criticalError = ErrorHandler.handleCriticalError(error, 'sendAllPdfs');
       Logger.critical('sendAllPdfs critical error', criticalError);
       
-      // 치명적 에러 시 자동 실행 중지
+      // Stop auto execution on critical errors
       if (criticalError.shouldStopTrigger) {
         TriggerManager.stopOnCriticalError();
       }

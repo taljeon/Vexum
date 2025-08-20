@@ -826,9 +826,7 @@ class PerformanceAnalyzer {
         errorAnalysis: Logger.analyzeErrorLogs()
       };
       
-      // 분석 결과를 JSON 형태로 로그에 출력
-      console.log('=== DETAILED SYSTEM ANALYSIS ===');
-      console.log(JSON.stringify(analysis, null, 2));
+      Logger.info('Detailed system analysis exported', analysis);
       
       // 사용자에게 결과 요약 표시
       let message = `■ 詳細分析エクスポート完了\n\n`;

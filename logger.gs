@@ -126,7 +126,7 @@ class Logger {
       
     } catch (error) {
       // 로깅 자체 에러는 콘솔에만 출력
-      console.error('Logging failed:', error.message);
+      // Logging system failure - silent to prevent loops
     }
   }
   
@@ -162,7 +162,7 @@ class Logger {
       properties.setProperty(logKey, JSON.stringify(existingLogs));
       
     } catch (error) {
-      console.error('Structured log saving failed:', error.message);
+      // Structured log saving failed - silent failure
     }
   }
   
@@ -185,7 +185,7 @@ class Logger {
       this._analyzeErrorPatterns(logEntry, errorClassification);
       
     } catch (error) {
-      console.error('Error log handling failed:', error.message);
+      // Error log handling failed - silent failure
     }
   }
   
@@ -288,7 +288,7 @@ class Logger {
       properties.setProperty(statsKey, JSON.stringify(stats));
       
     } catch (error) {
-      console.error('Error stats update failed:', error.message);
+      // Error stats update failed - silent failure
     }
   }
   
@@ -322,7 +322,7 @@ class Logger {
       properties.setProperty(historyKey, JSON.stringify(history));
       
     } catch (error) {
-      console.error('Error history update failed:', error.message);
+      // Error history update failed - silent failure
     }
   }
   
@@ -347,7 +347,7 @@ class Logger {
       }
       
     } catch (error) {
-      console.error('Error pattern analysis failed:', error.message);
+      // Error pattern analysis failed - silent failure
     }
   }
   
@@ -454,7 +454,7 @@ class Logger {
       }
       
     } catch (error) {
-      console.error('Critical error notification failed:', error.message);
+      // Critical error notification failed - silent failure
     }
   }
   
@@ -489,7 +489,7 @@ ${JSON.stringify(context, null, 2)}
       );
       
     } catch (error) {
-      console.error('Critical error email failed:', error.message);
+      // Critical error email failed - silent failure
     }
   }
   
@@ -905,7 +905,7 @@ ${JSON.stringify(context, null, 2)}
       ui.alert('エラーログ分析', message, ui.ButtonSet.OK);
       
     } catch (error) {
-      console.error('Analysis results display failed:', error.message);
+      // Analysis results display failed - silent failure
     }
   }
   
@@ -936,7 +936,7 @@ ${JSON.stringify(context, null, 2)}
       SpreadsheetApp.getUi().alert('エラーログ', message, SpreadsheetApp.getUi().ButtonSet.OK);
       
     } catch (error) {
-      console.error('Error log display failed:', error.message);
+      // Error log display failed
       SpreadsheetApp.getUi().alert('エラーログの表示に失敗しました: ' + error.message);
     }
   }
@@ -962,7 +962,7 @@ ${JSON.stringify(context, null, 2)}
       };
       
     } catch (error) {
-      console.error('Logging stats retrieval failed:', error.message);
+      // Logging stats retrieval failed - return empty stats
       return {
         date: 'unknown',
         totalErrors: 0,

@@ -7,9 +7,9 @@
  * @updated 2024
  */
 
-// ========== 글로벌 설정 상수 (설정 가능) ==========
+// Global Configuration Constants
 const CONFIG = {
-  // 실행 시간 및 배치 설정
+  // Execution and batch settings
   EXECUTION: {
     MAX_TIME_MS: 4 * 60 * 1000,           // 4분 (설정 가능)
     BATCH_SIZE: 3,                        // 배치 크기 (설정 가능)
@@ -20,7 +20,7 @@ const CONFIG = {
     HEALTH_CHECK_INTERVAL_HOURS: 24       // 시스템 상태 체크 간격 (시간)
   },
   
-  // 텍스트 처리 설정
+  // Text processing settings
   TEXT: {
     SUMMARY_MAX_LENGTH: 150,              // 요약 최대 길이
     MAX_TEXT_LENGTH: 8000,                // API 전송 최대 텍스트 길이
@@ -29,7 +29,7 @@ const CONFIG = {
     TRUNCATION_INDICATOR: '\n\n[文書の一部を要約用に抽出]'
   },
   
-  // 메일 관련 설정
+  // Email settings
   EMAIL: {
     MAX_ATTACHMENTS_PER_EMAIL: 25,        // Gmail 첨부파일 제한
     MAX_EMAIL_SIZE_MB: 25,                // 최대 이메일 크기 (MB)
@@ -38,7 +38,7 @@ const CONFIG = {
     RETRY_DELAY_MS: 3000                  // 메일 전송 재시도 대기시간
   },
   
-  // 로깅 및 모니터링
+  // Logging and monitoring
   LOGGING: {
     ERROR_SHEET_NAME: 'ErrorLog',         // 에러 로그 시트명
     MAX_LOG_ENTRIES: 1000,                // 최대 로그 항목 수
@@ -47,7 +47,7 @@ const CONFIG = {
     PERFORMANCE_LOG_ENABLED: true         // 성능 로그 활성화 여부
   },
   
-  // API 관련 설정
+  // API settings
   API: {
     GEMINI_TIMEOUT_MS: 30000,             // Gemini API 타임아웃 (30초)
     TOKEN_COST_PER_MILLION: 3.5,          // 백만 토큰당 비용 (USD)
@@ -56,14 +56,14 @@ const CONFIG = {
     RATE_LIMIT_BUFFER_RATIO: 0.8          // Rate limit 버퍼 비율
   },
   
-  // 메일 전송 모드
+  // Email delivery modes
   EMAIL_MODE: {
     INDIVIDUAL: 'individual',             // 시트별 개별 발송
     CONSOLIDATED: 'consolidated',         // 통합 발송 (권장)
     ERRORS_ONLY: 'errors_only'           // 실패만 보고
   },
   
-  // 시스템 상태
+  // System status
   SYSTEM_STATUS: {
     HEALTHY: 'HEALTHY',
     WARNING: 'WARNING', 
@@ -72,7 +72,7 @@ const CONFIG = {
   }
 };
 
-// 에러 타입 정의
+// Error type definitions
 const ERROR_TYPES = {
   TEMPORARY: 'TEMPORARY',                 // 일시적 에러 (재시도 가능)
   PERMANENT: 'PERMANENT',                 // 영구적 에러 (재시도 불가)
@@ -83,7 +83,7 @@ const ERROR_TYPES = {
   CONFIGURATION: 'CONFIGURATION'          // 설정 에러
 };
 
-// 로그 레벨 정의
+// Log level definitions
 const LOG_LEVELS = {
   DEBUG: 'DEBUG',
   INFO: 'INFO',

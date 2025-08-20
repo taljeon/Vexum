@@ -157,7 +157,7 @@ class GeminiAPI {
    */
   static _executeApiRequest(text, options = {}) {
     const config = ConfigManager.getApiConfig();
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${config.apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${config.apiKey}`;
     
     // 프롬프트 구성
     const prompt = this._buildPrompt(text, options);
