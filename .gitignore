@@ -1,40 +1,55 @@
-# Google Apps Script specific
-*.json
-.clasp.json
-.clasprc.json
+# 민감한 정보 파일들
+.env
+.env.local
+.env.production
+.env.staging
+*.key
+*.pem
+*.p12
+**/secrets/**
+**/private/**
 
-# API Keys and sensitive information
-config/api-keys.js
-*.env
-.env.*
+# API 키 및 설정 파일
+config.json
+secrets.json
+apikeys.json
+credentials.json
 
-# Logs
-logs/
+# 로그 파일
 *.log
+logs/
+*.logs
 
-# Temporary files
+# 임시 파일
 *.tmp
 *.temp
-
-# IDE files
+.DS_Store
 .vscode/
 .idea/
-*.swp
-*.swo
+
+# Node.js (만약 나중에 추가될 경우)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 백업 파일
+*.backup
+*.bak
 *~
 
-# System files
-.DS_Store
-Thumbs.db
-
-# Node modules (if using clasp)
-node_modules/
-package-lock.json
-
-# Backup files
-*.bak
-*.backup
-
-# Testing
+# 테스트 데이터
 test-data/
-mock-data/
+sample-data/
+data12_2.txt
+
+# 컴파일된 파일
+*.exe
+*.o
+*.obj
+a.out
+
+# 에디터 파일
+*swp
+*swo
+*.swn

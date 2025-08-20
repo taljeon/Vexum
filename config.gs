@@ -93,6 +93,42 @@ const LOG_LEVELS = {
 };
 
 /**
+ * 안전한 API 키 관리 함수들
+ */
+
+/**
+ * Gemini API 키를 안전하게 가져오기
+ * @returns {string} API 키
+ */
+function getGeminiApiKey() {
+  const apiKey = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
+  if (!apiKey) {
+    throw new Error('GEMINI_API_KEY not found in Script Properties. Please configure it in Apps Script project settings.');
+  }
+  return apiKey;
+}
+
+/**
+ * 이메일 설정을 안전하게 가져오기
+ * @returns {Object} 이메일 설정
+ */
+function getEmailConfig() {
+  const properties = PropertiesService.getScriptProperties();
+  const recipients = properties.getProperty('EMAIL_RECIPIENTS') || properties.getProperty('MAIL_TO');
+  const subject = properties.getProperty('EMAIL_SUBJECT') || properties.getProperty('MAIL_SUBJECT');
+  
+  if (!recipients) {
+    throw new Error('EMAIL_RECIPIENTS not found in Script Properties. Please configure email recipients.');
+  }
+  
+  return {
+    recipients: recipients,
+    subject: subject || 'PDF処理結果報告',
+    adminEmail: properties.getProperty('ADMIN_EMAIL') || recipients.split(',')[0].trim()
+  };
+}
+
+/**
  * 설정 관리 클래스 (개선된 버전)
  */
 class ConfigManager {
@@ -100,7 +136,7 @@ class ConfigManager {
    * 필수 설정 항목들
    */
   static get REQUIRED_PROPERTIES() {
-    return ['GEMINI_API_KEY', 'MAIL_TO', 'MAIL_SUBJECT'];
+    return ['GEMINI_API_KEY', 'EMAIL_RECIPIENTS'];
   }
   
   /**
@@ -336,6 +372,38 @@ class ConfigManager {
    */
   static getEmailMode() {
     return PropertiesService.getScriptProperties().getProperty('EMAIL_MODE') || CONFIG.EMAIL_MODE.CONSOLIDATED;
+  }
+  
+  /**
+   * API 설정 가져오기 (안전한 방식)
+   */
+  static getApiConfig() {
+    try {
+      const apiKey = getGeminiApiKey();
+      return {
+        apiKey: apiKey,
+        maxTokens: CONFIG.API.GEMINI_TIMEOUT_MS / 1000, // Convert to reasonable token estimate
+        maxRetries: CONFIG.EXECUTION.MAX_RETRIES,
+        retryDelay: CONFIG.EXECUTION.RATE_LIMIT_BACKOFF_BASE_MS,
+        pricePerToken: CONFIG.API.TOKEN_COST_PER_MILLION / 1000000,
+        timeout: CONFIG.API.GEMINI_TIMEOUT_MS
+      };
+    } catch (error) {
+      Logger.error('Failed to get API configuration', { error: error.message });
+      throw new Error('API configuration error: ' + error.message);
+    }
+  }
+  
+  /**
+   * 이메일 설정 가져오기 (안전한 방식)
+   */
+  static getEmailConfig() {
+    try {
+      return getEmailConfig();
+    } catch (error) {
+      Logger.error('Failed to get email configuration', { error: error.message });
+      throw new Error('Email configuration error: ' + error.message);
+    }
   }
   
   /**
