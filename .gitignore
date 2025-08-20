@@ -1,0 +1,40 @@
+# Google Apps Script specific
+*.json
+.clasp.json
+.clasprc.json
+
+# API Keys and sensitive information
+config/api-keys.js
+*.env
+.env.*
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Node modules (if using clasp)
+node_modules/
+package-lock.json
+
+# Backup files
+*.bak
+*.backup
+
+# Testing
+test-data/
+mock-data/
