@@ -359,6 +359,69 @@ function setupInitialConfiguration() {
 }
 
 /**
+ * 초기 설정 함수 (UI 없는 버전)
+ * Apps Script 에디터에서 직접 실행할 때 사용
+ */
+function setupInitialConfigurationHeadless() {
+  try {
+    console.log('Starting initial system configuration (headless mode)');
+    
+    // 1. 기본 설정 초기화
+    ConfigManager.initializeConfig();
+    
+    // 2. 로깅 시스템 초기화
+    Logger.startNewSession();
+    Logger.info('Initial configuration started (headless)');
+    
+    // 3. 설정 검증
+    const validation = ConfigManager.validate();
+    
+    // 4. 결과를 콘솔에 출력
+    console.log('=== 初期設定完了 ===');
+    console.log(`設定状態: ${validation.isValid ? '正常' : '要確認'}`);
+    
+    if (validation.missingApiKey) {
+      console.log('⚠️ Gemini APIキーの設定が必要です');
+      console.log('プロジェクト設定 → スクリプト属性で設定してください');
+      console.log('属性名: GEMINI_API_KEY');
+    }
+    
+    if (validation.missingEmailConfig) {
+      console.log('⚠️ メール送信先の設定が必要です');
+      console.log('属性名: EMAIL_RECIPIENTS');
+    }
+    
+    console.log('\n次のステップ:');
+    console.log('1. 必要な場合、APIキーを設定');
+    console.log('2. スプレッドシートから「設定検証」メニューで確認');
+    console.log('3. 「PDF統合送信」でテスト実行');
+    
+    Logger.info('Initial configuration completed successfully (headless)', {
+      validation: validation
+    });
+    
+    return {
+      success: true,
+      validation: validation,
+      message: '初期設定が完了しました。コンソールログを確認してください。'
+    };
+    
+  } catch (error) {
+    console.error('初期設定エラー:', error.message);
+    
+    Logger.error('Initial configuration failed (headless)', {
+      error: error.message
+    });
+    
+    return {
+      success: false,
+      error: error.message,
+      message: 'エラーが発生しました。コンソールログを確認してください。'
+    };
+  }
+}
+
+/**
  * API 키 설정 도우미 함수
  * Gemini API 키를 쉽게 설정할 수 있는 함수
  */
