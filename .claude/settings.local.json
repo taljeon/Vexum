@@ -10,7 +10,15 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(sed:*)",
-      "Bash(touch:*)"
+      "Bash(touch:*)",
+      "Bash(claude mcp add:*)",
+      "Bash(playwright --help)",
+      "Bash(npm install:*)",
+      "Bash(npm i:*)",
+      "Bash(sudo npm i -g @anthropic-ai/claude-code)",
+      "Bash(npm config:*)",
+      "Bash(export PATH=~/.npm-global/bin:$PATH)",
+      "Bash(claude --version)"
     ],
     "deny": [],
     "ask": []
