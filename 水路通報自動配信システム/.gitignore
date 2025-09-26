@@ -1,0 +1,61 @@
+# 水路通報自動配信システム - Git 제외 파일 설정
+
+# 환경 설정 파일 (보안상 중요)
+.env
+.env.local
+.env.production
+.env.test
+*.env
+
+# 로그 파일
+logs/
+*.log
+*.log.*
+
+# 데이터베이스 파일
+data/
+*.db
+*.sqlite
+*.sqlite3
+
+# 백업 파일
+backups/
+*.backup
+
+# 임시 파일
+temp/
+tmp/
+*.tmp
+*.temp
+
+# 시스템 파일
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.pyc
+.Python
+env/
+venv/
+.venv/
+
+# 세미나/프로젝트 데이터 (Docker 볼륨으로 관리)
+seminar-data/
+seminar-logs/
+
+# Docker
+.dockerignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 개인 설정
+config/local_*
+config/personal_*

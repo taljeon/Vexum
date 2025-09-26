@@ -1,0 +1,33 @@
+name: waterway-test
+
+services:
+  waterway-system:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: waterway-test-system
+    restart: "no"
+
+    # 환경 변수
+    env_file:
+      - .env
+    environment:
+      - TZ=Asia/Tokyo
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app
+
+    # 볼륨 마운트
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+
+    # 헬스체크 간소화
+    healthcheck:
+      test: ["CMD", "python", "-c", "print('healthy')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    # 테스트 모드로 실행
+    command: ["python", "email_test_setup.py"]
