@@ -1,0 +1,62 @@
+[
+  {
+    "name": "関東運輸局",
+    "url": "https://wwwtb.mlit.go.jp/kanto/kaiji_sinkou/senin/sikenannai.html",
+    "seminar_url": "https://c2sea.go.jp/learning/study/",
+    "description": "海技試験案内・船員求人情報"
+  },
+  {
+    "name": "神戸運輸監理部",
+    "url": "https://wwwtb.mlit.go.jp/kobe/kaigisya_seminar2024.html",
+    "seminar_url": "https://wwwtb.mlit.go.jp/kobe/",
+    "description": "めざせ！海技者セミナー IN KOBE"
+  },
+  {
+    "name": "中部運輸局",
+    "url": "https://wwwtb.mlit.go.jp/chubu/kaishin/senrou/rapport_regulier/kaigisyaseminar.html",
+    "seminar_url": "https://c2sea.go.jp/learning/study/entry-556.html",
+    "description": "海事振興部・海技者セミナー"
+  },
+  {
+    "name": "北海道運輸局",
+    "url": "https://wwwtb.mlit.go.jp/hokkaido/",
+    "seminar_url": "https://c2sea.go.jp/learning/study/",
+    "description": "海技者セミナー（小樽開催予定）"
+  },
+  {
+    "name": "東北運輸局",
+    "url": "https://wwwtb.mlit.go.jp/tohoku/index.html",
+    "seminar_url": "https://c2sea.go.jp/learning/study/",
+    "description": "海技者セミナー（仙台開催予定）"
+  },
+  {
+    "name": "九州運輸局",
+    "url": "https://wwwtb.mlit.go.jp/kyushu/",
+    "seminar_url": "https://c2sea.go.jp/learning/study/entry-530.html",
+    "description": "めざせ！海技者セミナー in FUKUOKA"
+  },
+  {
+    "name": "近畿運輸局",
+    "url": "https://wwwtb.mlit.go.jp/kinki/",
+    "seminar_url": "https://c2sea.go.jp/learning/study/",
+    "description": "海技者セミナー・船員求人"
+  },
+  {
+    "name": "中国運輸局",
+    "url": "https://wwwtb.mlit.go.jp/chugoku/",
+    "seminar_url": "https://c2sea.go.jp/learning/study/",
+    "description": "海技者セミナー今治開催"
+  },
+  {
+    "name": "四国運輸局",
+    "url": "https://wwwtb.mlit.go.jp/shikoku/",
+    "seminar_url": "https://c2sea.go.jp/learning/study/",
+    "description": "海技者セミナー"
+  },
+  {
+    "name": "北陸信越運輸局",
+    "url": "https://wwwtb.mlit.go.jp/hokushin/",
+    "seminar_url": "https://c2sea.go.jp/learning/study/",
+    "description": "海技者関連情報"
+  }
+]

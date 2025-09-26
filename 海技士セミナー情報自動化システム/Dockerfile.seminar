@@ -1,0 +1,42 @@
+# 해기사 세미나 자동화 시스템 Dockerfile
+FROM python:3.11-slim
+
+# 작업 디렉토리 설정
+WORKDIR /app
+
+# 시스템 패키지 업데이트 및 필요한 패키지 설치
+RUN apt-get update && apt-get install -y \
+    sqlite3 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Python 패키지 설치
+COPY requirements.seminar.txt .
+RUN pip install --no-cache-dir -r requirements.seminar.txt
+
+# 애플리케이션 파일 복사
+COPY seminar_automation_system.py .
+COPY seminar_scheduler.py .
+COPY setup_seminar_test_data.py .
+COPY email_test.py .
+COPY regional_transport_bureaus.json .
+
+# 데이터 및 로그 디렉토리 생성
+RUN mkdir -p /app/data /app/logs
+
+# 환경 변수 설정
+ENV DB_PATH=/app/data/seminar_automation.db
+ENV LOG_PATH=/app/logs
+
+# 헬스체크 스크립트 추가
+COPY healthcheck.seminar.py .
+
+# 헬스체크 설정
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python healthcheck.seminar.py
+
+# 기본 명령어 설정 (스케줄러 모드)
+CMD ["python", "seminar_scheduler.py", "--schedule"]
+
+# 포트 노출 (필요시)
+EXPOSE 8080
