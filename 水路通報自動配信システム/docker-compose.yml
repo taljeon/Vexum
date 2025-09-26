@@ -1,0 +1,139 @@
+version: '3.8'
+
+services:
+  waterway-system:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: waterway-notices-system
+    restart: unless-stopped
+
+    # 環境変数を.envファイルから読み込み
+    env_file:
+      - .env
+
+    environment:
+      - TZ=${TZ:-Asia/Tokyo}
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app
+
+    # 永続化マウント
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./config:/app/config:ro
+
+    # ポート公開（管理用Webインターフェース用）
+    ports:
+      - "8080:8080"
+
+    # ヘルスチェック
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8080/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    # ネットワーク設定
+    networks:
+      - waterway-network
+
+    # ログ設定
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    # 依存関係（必要に応じてデータベースサービスを追加）
+    depends_on:
+      - waterway-db
+
+    # CPU・メモリ制限
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+
+  # SQLiteの代わりにPostgreSQLを使用する場合
+  waterway-db:
+    image: postgres:15-alpine
+    container_name: waterway-notices-db
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: waterway_notices
+      POSTGRES_USER: waterway_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secure_password}
+      TZ: ${TZ:-Asia/Tokyo}
+
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./db-init:/docker-entrypoint-initdb.d:ro
+
+    networks:
+      - waterway-network
+
+    # ポート公開（開発時のみ）
+    ports:
+      - "5432:5432"
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U waterway_user -d waterway_notices"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis（キャッシュ・セッション管理用、オプション）
+  waterway-redis:
+    image: redis:7-alpine
+    container_name: waterway-notices-redis
+    restart: unless-stopped
+
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis_password}
+
+    volumes:
+      - redis-data:/data
+
+    networks:
+      - waterway-network
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ログ集約・監視用（オプション）
+  waterway-monitor:
+    image: grafana/promtail:2.9.0
+    container_name: waterway-notices-monitor
+    restart: unless-stopped
+
+    volumes:
+      - ./logs:/var/log/waterway:ro
+      - ./monitoring/promtail-config.yml:/etc/promtail/config.yml:ro
+
+    networks:
+      - waterway-network
+
+    profiles:
+      - monitoring
+
+volumes:
+  db-data:
+    driver: local
+  redis-data:
+    driver: local
+
+networks:
+  waterway-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

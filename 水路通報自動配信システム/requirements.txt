@@ -1,0 +1,44 @@
+# 水路通報自動配信システム - 必要パッケージ
+
+# 基本フレームワーク
+requests==2.31.0
+beautifulsoup4==4.12.2
+lxml==4.9.3
+
+# スケジューリング
+schedule==1.2.0
+pytz==2023.3
+
+# データベース
+sqlite3
+
+# ログ・設定
+python-dotenv==1.0.0
+pyyaml==6.0.1
+
+# メール送信
+smtplib
+email
+
+# RSS解析
+feedparser==6.0.10
+
+# Slack通知
+slack-sdk==3.27.1
+
+# データ処理
+pandas==2.1.0
+numpy==1.24.3
+
+# Web関連
+flask==2.3.3
+gunicorn==21.2.0
+
+# 監視・ヘルスチェック
+psutil==5.9.6
+
+# 開発・テスト用
+pytest==7.4.2
+pytest-cov==4.1.0
+black==23.7.0
+flake8==6.0.0
