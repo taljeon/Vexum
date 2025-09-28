@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  seminar-automation:
+    image: your-dockerhub-username/seminar-automation:latest
+    container_name: seminar-automation
+    restart: unless-stopped
+    environment:
+      - DB_PATH=/app/data/seminar_automation.db
+      - LOG_PATH=/app/logs
+      - TZ=Asia/Tokyo
+      # メール設定
+      - TEST_EMAIL=${TEST_EMAIL}
+      - SMTP_USERNAME=${SMTP_USERNAME}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - SMTP_SERVER=${SMTP_SERVER:-smtp.gmail.com}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - FROM_EMAIL=${FROM_EMAIL}
+      # 運用モード設定
+      - DRY_RUN=${DRY_RUN:-false}
+    volumes:
+      - seminar-data:/app/data
+      - seminar-logs:/app/logs
+    networks:
+      - seminar-network
+    healthcheck:
+      test: ["CMD", "python", "healthcheck.seminar.py"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  seminar-data:
+    driver: local
+  seminar-logs:
+    driver: local
+
+networks:
+  seminar-network:
+    driver: bridge
